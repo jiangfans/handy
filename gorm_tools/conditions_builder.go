@@ -1,4 +1,4 @@
-package sql_builder
+package gorm_tools
 
 import (
 	"fmt"
