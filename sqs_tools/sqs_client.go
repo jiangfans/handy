@@ -16,11 +16,11 @@ type sqsClient struct {
 }
 
 type ReceiveMsgOpts struct {
-	MaxNumberOfMessages  int32   // 单词轮训获取到到最大消息数量
-	VisibilityTimeout    int32   // 消息能被下一次查询查到的间隔时间
-	WaitTimeSeconds      int32   // 轮训消息间隔时间
-	HandleMsgConcurrency int     // 消费消息的并发goroutine数目
-	RetryIntervals       []int32 // 数组下标为重试次数，值为重试间隔时间
+	MaxNumberOfMessages  int32           // 单词轮训获取到到最大消息数量
+	VisibilityTimeout    int32           // 消息能被下一次查询查到的间隔时间
+	WaitTimeSeconds      int32           // 轮训消息间隔时间
+	HandleMsgConcurrency int             // 消费消息的并发goroutine数目
+	RetryIntervals       []time.Duration // 数组下标为重试次数，值为重试间隔时间
 }
 
 const (
@@ -67,6 +67,12 @@ func VisibilityTimeout(seconds int32) ReceiveMsgOption {
 func WaitTimeSeconds(seconds int32) ReceiveMsgOption {
 	return newReceiveMsgOption(func(opts *ReceiveMsgOpts) {
 		opts.WaitTimeSeconds = seconds
+	})
+}
+
+func RetryIntervals(intervals []time.Duration) ReceiveMsgOption {
+	return newReceiveMsgOption(func(opts *ReceiveMsgOpts) {
+		opts.RetryIntervals = intervals
 	})
 }
 
@@ -212,7 +218,7 @@ func (sc *sqsClient) handleMsg(ctx context.Context, msg *types.Message, f Handle
 				}
 
 				if retryTimes < len(rMOpts.RetryIntervals)-1 {
-					sc.changeMessageVisibility(ctx, msg, rMOpts.RetryIntervals[retryTimes])
+					sc.changeMessageVisibility(ctx, msg, int32(rMOpts.RetryIntervals[retryTimes]/time.Second))
 					return
 				} else {
 					log.Infof("retry over allow times")
