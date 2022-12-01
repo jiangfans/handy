@@ -30,7 +30,7 @@ const (
 	DefaultHandleMsgConcurrency = 5
 )
 
-type HandleMsgFunc func(msg *types.Message) error
+type HandleMsgFunc func(ctx context.Context, msg *types.Message) error
 
 type (
 	funcReceiveMsgOption struct {
@@ -199,7 +199,7 @@ func (sc *sqsClient) handleMsg(ctx context.Context, msg *types.Message, f Handle
 		opt.apply(rMOpts)
 	}
 
-	if err := f(msg); err != nil {
+	if err := f(ctx, msg); err != nil {
 		log.Error(err.Error())
 
 		// 如果需要重试，更改VisibilityTimeout
