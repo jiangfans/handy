@@ -169,6 +169,11 @@ func (r *Request) UrlencodedFormatBody(body map[string]string) *Request {
 	return r
 }
 
+func (r *Request) BodyBytes(bs []byte) *Request {
+	r.bodyBytes = bs
+	return r
+}
+
 func (r *Request) AddHeader(key, value string) *Request {
 	r.headers[key] = value
 	return r
