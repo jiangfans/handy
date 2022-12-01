@@ -153,6 +153,11 @@ func (r *Request) Body(body interface{}) *Request {
 	return r
 }
 
+func (r *Request) BytesBody(bs []byte) *Request {
+	r.bodyBytes = bs
+	return r
+}
+
 func (r *Request) AddHeader(key, value string) *Request {
 	r.headers[key] = value
 	return r
