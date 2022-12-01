@@ -141,7 +141,7 @@ func (r *Request) StructQueryParams(params interface{}) *Request {
 	return r.QueryParams(mapParams)
 }
 
-func (r *Request) Body(body interface{}) *Request {
+func (r *Request) JsonBody(body interface{}) *Request {
 	bs, err := json.Marshal(body)
 	if err != nil {
 		log.Error("incorrect body format: " + err.Error())
@@ -150,16 +150,34 @@ func (r *Request) Body(body interface{}) *Request {
 	}
 	r.bodyBytes = bs
 
+	r.ContentType(ContentTypeJson)
 	return r
 }
 
-func (r *Request) BytesBody(bs []byte) *Request {
-	r.bodyBytes = bs
+func (r *Request) UrlencodedFormatBody(body map[string]string) *Request {
+	values := make(url.Values)
+	for key, value := range body {
+		values.Set(key, value)
+	}
+
+	if len(values) != 0 {
+		bodyStr := values.Encode()
+		r.bodyBytes = []byte(bodyStr)
+	}
+
+	r.ContentType(ContentTypeUrlencoded)
 	return r
 }
 
 func (r *Request) AddHeader(key, value string) *Request {
 	r.headers[key] = value
+	return r
+}
+
+func (r *Request) AddHeaders(headers map[string]string) *Request {
+	for key, value := range headers {
+		r.AddHeader(key, value)
+	}
 	return r
 }
 
