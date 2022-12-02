@@ -30,8 +30,6 @@ const (
 	DefaultHandleMsgConcurrency = 5
 )
 
-type HandleMsgFunc func(ctx context.Context, msg *types.Message) error
-
 type (
 	funcReceiveMsgOption struct {
 		f func(opts *ReceiveMsgOpts)
@@ -107,7 +105,7 @@ func (sc *sqsClient) SendMsg(ctx context.Context, msg *sqs.SendMessageInput) err
 	return nil
 }
 
-func (sc *sqsClient) ReceiveMsgAndBlock(ctx context.Context, f HandleMsgFunc, opts ...ReceiveMsgOption) {
+func (sc *sqsClient) ConsumerMsgAndBlock(ctx context.Context, f ConsumeFunc, opts ...ReceiveMsgOption) {
 	log.Infof("😂😂😂start receive msg ...")
 
 	var programQuitNormal bool
@@ -175,19 +173,19 @@ func (sc *sqsClient) ReceiveMsgAndBlock(ctx context.Context, f HandleMsgFunc, op
 			go func(msg types.Message) {
 				defer func() {
 					if e := recover(); e != nil {
-						log.Error("handle sqs msg panic: ", e)
+						log.Error("consume sqs msg panic: ", e)
 					}
 
 					<-concurrencyChan
 				}()
 
-				sc.handleMsg(ctx, &msg, f, opts...)
+				sc.consumeMsg(ctx, &msg, f, opts...)
 			}(message)
 		}
 	}
 }
 
-func (sc *sqsClient) handleMsg(ctx context.Context, msg *types.Message, f HandleMsgFunc, opts ...ReceiveMsgOption) {
+func (sc *sqsClient) consumeMsg(ctx context.Context, msg *types.Message, f ConsumeFunc, opts ...ReceiveMsgOption) {
 	defer func() {
 		if e := recover(); e != nil {
 			log.Error("😭consume sqs msg panic: ", e)
@@ -200,7 +198,7 @@ func (sc *sqsClient) handleMsg(ctx context.Context, msg *types.Message, f Handle
 	}
 
 	if err := f(ctx, msg); err != nil {
-		log.Error(err.Error())
+		log.Info(err.Error())
 
 		// 如果需要重试，更改VisibilityTimeout
 		// 获取已经接收到的消息次数

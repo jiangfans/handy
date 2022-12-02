@@ -5,6 +5,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
+	"github.com/aws/aws-sdk-go-v2/service/sqs/types"
 	"net/http"
 	"time"
 )
@@ -12,9 +13,11 @@ import (
 type Client interface {
 	SendMsg(ctx context.Context, msg *sqs.SendMessageInput) error
 	SendBytesMsg(ctx context.Context, msg []byte) error
-	ReceiveMsgAndBlock(ctx context.Context, f HandleMsgFunc, opts ...ReceiveMsgOption)
+	ConsumerMsgAndBlock(ctx context.Context, f ConsumeFunc, opts ...ReceiveMsgOption)
 	SqsClient() *sqs.Client
 }
+
+type ConsumeFunc func(ctx context.Context, msg *types.Message) error
 
 type Config struct {
 	AccessKeyId     string
