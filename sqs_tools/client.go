@@ -28,7 +28,7 @@ type Config struct {
 
 func NewClient(cfg *Config) Client {
 	httpClient := http.DefaultClient
-	httpClient.Timeout = 10 * time.Second
+	httpClient.Timeout = 20 * time.Second
 
 	cs := credentials.NewStaticCredentialsProvider(
 		cfg.AccessKeyId,
