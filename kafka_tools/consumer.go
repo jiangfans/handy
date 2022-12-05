@@ -52,5 +52,8 @@ func NewConsumer(cfg *ConsumerConfig) (Consumer, error) {
 		return nil, err
 	}
 
-	return &kafkaConsumer{ConsumerGroup: consumerGroup}, nil
+	return &kafkaConsumer{
+		ListenTopics:  cfg.ListenTopics,
+		ConsumerGroup: consumerGroup,
+	}, nil
 }
