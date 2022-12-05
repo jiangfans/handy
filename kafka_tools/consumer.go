@@ -12,7 +12,7 @@ const (
 	OffsetOldest = sarama.OffsetOldest
 )
 
-type ConsumeFunc func(ctx context.Context, msg *sarama.ConsumerMessage) error
+type ConsumeFunc func(msg *sarama.ConsumerMessage) error
 
 type ConsumerConfig struct {
 	Addrs         []string
@@ -22,6 +22,7 @@ type ConsumerConfig struct {
 }
 
 type Consumer interface {
+	ConsumerMsgAndBlock(ctx context.Context, f ConsumeFunc) error
 }
 
 func NewConsumer(cfg *ConsumerConfig) (Consumer, error) {
