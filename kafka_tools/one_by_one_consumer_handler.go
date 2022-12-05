@@ -7,25 +7,29 @@ import (
 	"time"
 )
 
-type ConsumerGroupHandler struct {
+/*
+	一条条消息消费，适用于不能丢消息的场景
+*/
+
+type OneByOneConsumerHandler struct {
 	consumeFunc ConsumeFunc
 }
 
-func NewConsumerGroupHandler(consumeFunc ConsumeFunc) *ConsumerGroupHandler {
-	return &ConsumerGroupHandler{
+func NewOneByOneConsumerHandler(consumeFunc ConsumeFunc) *OneByOneConsumerHandler {
+	return &OneByOneConsumerHandler{
 		consumeFunc: consumeFunc,
 	}
 }
 
-func (*ConsumerGroupHandler) Setup(_ sarama.ConsumerGroupSession) error {
+func (*OneByOneConsumerHandler) Setup(_ sarama.ConsumerGroupSession) error {
 	return nil
 }
 
-func (*ConsumerGroupHandler) Cleanup(_ sarama.ConsumerGroupSession) error {
+func (*OneByOneConsumerHandler) Cleanup(_ sarama.ConsumerGroupSession) error {
 	return nil
 }
 
-func (handler *ConsumerGroupHandler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
+func (handler *OneByOneConsumerHandler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	var msg *sarama.ConsumerMessage
 	var err error
 

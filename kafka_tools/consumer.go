@@ -19,10 +19,11 @@ type ConsumerConfig struct {
 	ListenTopics  []string
 	GroupId       string
 	InitialOffset int64
+	Concurrency   int
 }
 
 type Consumer interface {
-	ConsumerMsgAndBlock(ctx context.Context, f ConsumeFunc)
+	ConsumerMsgAndBlock(ctx context.Context, f ConsumeFunc, concurrency bool)
 }
 
 func NewConsumer(cfg *ConsumerConfig) (Consumer, error) {

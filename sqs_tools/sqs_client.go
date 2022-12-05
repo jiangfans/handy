@@ -6,6 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/aws/aws-sdk-go-v2/service/sqs/types"
 	log "github.com/sirupsen/logrus"
+	"runtime/debug"
 	"strconv"
 	"time"
 )
@@ -114,7 +115,7 @@ func (sc *sqsClient) ConsumerMsgAndBlock(ctx context.Context, f ConsumeFunc, opt
 			if programQuitNormal {
 				log.Info("😊program quit normal")
 			} else {
-				log.Errorf("😭program quit with panic: %v", e)
+				log.Errorf("😭program quit with panic: %v\n%s", e, string(debug.Stack()))
 			}
 		}
 	}()
@@ -165,7 +166,10 @@ func (sc *sqsClient) ConsumerMsgAndBlock(ctx context.Context, f ConsumeFunc, opt
 		if err != nil {
 			log.Error(err.Error())
 			time.Sleep(2 * time.Second)
+			continue
 		}
+
+		log.Debugf("received number of msgs: %d", len(rMOutput.Messages))
 
 		for _, message := range rMOutput.Messages {
 			concurrencyChan <- struct{}{}
@@ -242,7 +246,7 @@ func (sc *sqsClient) changeMessageVisibility(ctx context.Context, msg *types.Mes
 	if err != nil {
 		log.Error(err.Error())
 	}
-	log.Debugf("message %s change visibility timeount to %d", aws.ToString(msg.MessageId), visibilityTimeout)
+	log.Debugf("message %s change visibility timeount to %ds", aws.ToString(msg.MessageId), visibilityTimeout)
 	return
 }
 

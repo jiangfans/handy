@@ -11,7 +11,7 @@ type kafkaConsumer struct {
 	ConsumerGroup sarama.ConsumerGroup
 }
 
-func (consumer *kafkaConsumer) ConsumerMsgAndBlock(ctx context.Context, f ConsumeFunc) {
+func (consumer *kafkaConsumer) ConsumerMsgAndBlock(ctx context.Context, f ConsumeFunc, concurrency bool) {
 	log.Infof("😂😂😂start receive msg ...")
 
 	var programQuitNormal bool
@@ -35,7 +35,14 @@ func (consumer *kafkaConsumer) ConsumerMsgAndBlock(ctx context.Context, f Consum
 		}
 	}()
 
-	handler := NewConsumerGroupHandler(f)
+	var handler sarama.ConsumerGroupHandler
+
+	if !concurrency {
+		handler = NewOneByOneConsumerHandler(f)
+	} else {
+		// todo 实现并发处理消息
+		panic("concurrency consume not implement!")
+	}
 
 	for {
 		err := consumer.ConsumerGroup.Consume(ctx, consumer.ListenTopics, handler)
