@@ -22,7 +22,7 @@ type ConsumerConfig struct {
 }
 
 type Consumer interface {
-	ConsumerMsgAndBlock(ctx context.Context, f ConsumeFunc) error
+	ConsumerMsgAndBlock(ctx context.Context, f ConsumeFunc)
 }
 
 func NewConsumer(cfg *ConsumerConfig) (Consumer, error) {

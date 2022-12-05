@@ -11,7 +11,7 @@ type kafkaConsumer struct {
 	ConsumerGroup sarama.ConsumerGroup
 }
 
-func (consumer *kafkaConsumer) ConsumerMsgAndBlock(ctx context.Context, f ConsumeFunc) error {
+func (consumer *kafkaConsumer) ConsumerMsgAndBlock(ctx context.Context, f ConsumeFunc) {
 	log.Infof("😂😂😂start receive msg ...")
 
 	var programQuitNormal bool
@@ -41,7 +41,7 @@ func (consumer *kafkaConsumer) ConsumerMsgAndBlock(ctx context.Context, f Consum
 		err := consumer.ConsumerGroup.Consume(ctx, consumer.ListenTopics, handler)
 		if err != nil {
 			log.Error("😭program quit with error: ", err.Error())
-			return err
+			return
 		}
 	}
 }
