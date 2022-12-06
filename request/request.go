@@ -342,7 +342,7 @@ func (r *Request) Do(ctx ...context.Context) (respBs []byte, statusCode int, err
 		req.SetBasicAuth(r.basicAuth.UserName, r.basicAuth.Password)
 	}
 
-	timeStart := time.Now().Nanosecond() / 1000
+	timeStart := time.Now().Nanosecond() / 1e6
 
 	resp, err := r.client.Do(req)
 	if err != nil {
@@ -350,7 +350,7 @@ func (r *Request) Do(ctx ...context.Context) (respBs []byte, statusCode int, err
 		return
 	}
 
-	elapsed = timeStart - time.Now().Nanosecond()/1000
+	elapsed = time.Now().Nanosecond()/1e6 - timeStart
 
 	statusCode = resp.StatusCode
 

@@ -34,13 +34,16 @@ func (handler *OneByOneConsumerHandler) ConsumeClaim(sess sarama.ConsumerGroupSe
 	var err error
 
 	defer func() {
-		logFields := map[string]interface{}{
-			"topic":     msg.Topic,
-			"partition": msg.Partition,
-			"offset":    msg.Offset,
-			"time":      msg.Timestamp.In(utils.CST).Format(time.RFC3339),
-			"key":       msg.Key,
-			"value":     string(msg.Value),
+		logFields := make(log.Fields)
+		if msg != nil {
+			logFields = map[string]interface{}{
+				"topic":     msg.Topic,
+				"partition": msg.Partition,
+				"offset":    msg.Offset,
+				"time":      msg.Timestamp.In(utils.CST).Format(time.RFC3339),
+				"key":       msg.Key,
+				"value":     string(msg.Value),
+			}
 		}
 
 		if re := recover(); re != nil {
