@@ -177,7 +177,7 @@ func (sc *sqsClient) ConsumerMsgAndBlock(ctx context.Context, f ConsumeFunc, opt
 			go func(msg types.Message) {
 				defer func() {
 					if e := recover(); e != nil {
-						log.Error("consume sqs msg panic: ", e)
+						log.Error("😭consume sqs msg panic: ", e)
 					}
 
 					<-concurrencyChan
@@ -260,7 +260,7 @@ func (sc *sqsClient) deleteMessage(ctx context.Context, msg *types.Message) {
 	if err != nil {
 		log.Error(err.Error())
 	}
-	log.Debugf("message %s deleted", aws.ToString(msg.MessageId))
+	log.Debugf("👏handle message %s success", aws.ToString(msg.MessageId))
 	return
 }
 

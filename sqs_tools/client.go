@@ -6,8 +6,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/aws/aws-sdk-go-v2/service/sqs/types"
-	"net/http"
-	"time"
 )
 
 type Client interface {
@@ -27,20 +25,21 @@ type Config struct {
 }
 
 func NewClient(cfg *Config) Client {
-	httpClient := http.DefaultClient
-	httpClient.Timeout = 20 * time.Second
-
 	cs := credentials.NewStaticCredentialsProvider(
 		cfg.AccessKeyId,
 		cfg.SecretAccessKey,
 		"",
 	)
 
+	retryer := func() aws.Retryer {
+		return aws.NopRetryer{}
+	}
+
 	client := sqs.NewFromConfig(
 		aws.Config{
 			Region:      cfg.Region,
 			Credentials: cs,
-			HTTPClient:  httpClient,
+			Retryer:     retryer,
 		})
 
 	return &sqsClient{

@@ -61,7 +61,13 @@ func (handler *OneByOneConsumerHandler) ConsumeClaim(sess sarama.ConsumerGroupSe
 	}()
 
 	for msg := range claim.Messages() {
-		log.Printf("Message topic:%q partition:%d offset:%d timestamp:%v\n", msg.Topic, msg.Partition, msg.Offset, msg.Timestamp)
+		log.WithFields(log.Fields{
+			"topic":     msg.Topic,
+			"partition": msg.Partition,
+			"offset":    msg.Offset,
+			"timestamp": msg.Timestamp.In(utils.CST).Format(time.RFC3339),
+		}).Debug("received msg")
+
 		err = handler.consumeFunc(msg)
 		if err != nil {
 			// 有错误直接返回，避免丢消息，这里有可能堵塞消费，先👀下

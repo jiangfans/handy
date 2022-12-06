@@ -282,8 +282,23 @@ func (r *Request) Delete(ctx ...context.Context) (respBs []byte, statusCode int,
 }
 
 func (r *Request) Do(ctx ...context.Context) (respBs []byte, statusCode int, err error) {
+	var elapsed int
+
+	defer func() {
+		log.WithFields(log.Fields{
+			"method":      r.method,
+			"url":         r.url,
+			"status_code": statusCode,
+			"elapsed":     elapsed,
+			"error":       err,
+		}).Info()
+
+		log.WithFields(log.Fields{"request_body": string(r.bodyBytes), "resp_data": string(respBs)}).Debug()
+	}()
+
 	err = r.err
 	if err != nil {
+		log.Error(err.Error())
 		return
 	}
 
@@ -304,7 +319,7 @@ func (r *Request) Do(ctx ...context.Context) (respBs []byte, statusCode int, err
 
 	req, err := http.NewRequestWithContext(r.ctx, r.method, r.url, body)
 	if err != nil {
-		log.Error("new request failed: " + err.Error())
+		log.Error(err.Error())
 		return
 	}
 	if len(r.headers) != 0 {
@@ -327,17 +342,17 @@ func (r *Request) Do(ctx ...context.Context) (respBs []byte, statusCode int, err
 		req.SetBasicAuth(r.basicAuth.UserName, r.basicAuth.Password)
 	}
 
-	log.Infof("request %s, method: %s", r.url, r.method)
-	log.Debug("request body: ", string(r.bodyBytes))
+	timeStart := time.Now().Nanosecond() / 1000
 
 	resp, err := r.client.Do(req)
 	if err != nil {
-		log.Error("send request error: " + err.Error())
+		log.WithError(err).Error()
 		return
 	}
 
+	elapsed = timeStart - time.Now().Nanosecond()/1000
+
 	statusCode = resp.StatusCode
-	log.Infof("request %s, return code: %d", r.url, statusCode)
 
 	defer func() {
 		if resp.Body != nil {
@@ -350,11 +365,9 @@ func (r *Request) Do(ctx ...context.Context) (respBs []byte, statusCode int, err
 
 	respBs, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Error("read body content error: " + err.Error())
+		log.Error(err.Error())
 		return
 	}
-
-	log.Debug("resp: ", string(respBs))
 
 	return
 }
