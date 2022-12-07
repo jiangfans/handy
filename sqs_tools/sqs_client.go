@@ -2,13 +2,15 @@ package sqs_tools
 
 import (
 	"context"
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/sqs"
-	"github.com/aws/aws-sdk-go-v2/service/sqs/types"
-	log "github.com/sirupsen/logrus"
 	"runtime/debug"
 	"strconv"
 	"time"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/sqs"
+	"github.com/aws/aws-sdk-go-v2/service/sqs/types"
+	"github.com/jiangfans/handy/monitor"
+	log "github.com/sirupsen/logrus"
 )
 
 type sqsClient struct {
@@ -109,6 +111,13 @@ func (sc *sqsClient) SendMsg(ctx context.Context, msg *sqs.SendMessageInput) err
 func (sc *sqsClient) ConsumerMsgAndBlock(ctx context.Context, f ConsumeFunc, opts ...ReceiveMsgOption) {
 	log.Infof("😂😂😂start receive msg ...")
 
+	// export sqs metrics
+	if monitor.SqsEnabled {
+		go func() {
+			monitor.MonitorSQSQueue(sc.sqsClient, sc.queueUrl)
+		}()
+	}
+
 	var programQuitNormal bool
 	defer func() {
 		if e := recover(); e != nil {
@@ -124,7 +133,7 @@ func (sc *sqsClient) ConsumerMsgAndBlock(ctx context.Context, f ConsumeFunc, opt
 		select {
 		case <-ctx.Done():
 			programQuitNormal = true
-			panic("ctx done, program quit!")
+			panic("👋ctx done, program quit")
 		}
 	}()
 

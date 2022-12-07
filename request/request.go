@@ -9,7 +9,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/jiangfans/handy/utils"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -17,6 +16,9 @@ import (
 	"reflect"
 	"strconv"
 	"time"
+
+	"github.com/jiangfans/handy/monitor"
+	"github.com/jiangfans/handy/utils"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -34,11 +36,11 @@ type (
 		basicAuth       *BasicAuth
 		method          string
 		url             string
-		promUrl         string
 		queryParams     url.Values
 		headers         map[string]string
 		bodyBytes       []byte
 		err             error
+		prom            *Prom
 	}
 
 	InternalRequest struct {
@@ -50,6 +52,10 @@ type (
 	BasicAuth struct {
 		UserName string
 		Password string
+	}
+
+	Prom struct {
+		url string
 	}
 )
 
@@ -72,7 +78,6 @@ func (r *Request) Method(method string) *Request {
 }
 
 func (r *Request) Url(reqUrl string, params ...interface{}) *Request {
-	r.promUrl = reqUrl
 	reqUrl = fmt.Sprintf(reqUrl, params...)
 
 	u, err := url.Parse(reqUrl)
@@ -94,7 +99,6 @@ func (r *Request) Url(reqUrl string, params ...interface{}) *Request {
 			r.queryParams.Set(key, values.Get(key))
 		}
 
-		u.RawQuery = ""
 		r.url = u.String()
 	} else {
 		r.url = reqUrl
@@ -196,9 +200,11 @@ func (r *Request) ContentType(contentType string) *Request {
 	return r
 }
 
-func (r *Request) InternalRequest(hmacKey string, storeID uint64, locale string) *Request {
+func (r *Request) InternalRequest(hmacKey string, storeId uint64, locale string) *Request {
 	r.internalRequest = &InternalRequest{
 		HmacKey: hmacKey,
+		StoreId: storeId,
+		Locale:  locale,
 	}
 	return r
 }
@@ -261,6 +267,13 @@ func (r *Request) BasicAuth(userName, password string) *Request {
 	return r
 }
 
+func (r *Request) EnableProm(reqUrl string) *Request {
+	r.prom = &Prom{
+		url: reqUrl,
+	}
+	return r
+}
+
 func (r *Request) Get(ctx ...context.Context) (respBs []byte, statusCode int, err error) {
 	return r.Method(http.MethodGet).Do(ctx...)
 }
@@ -283,6 +296,7 @@ func (r *Request) Delete(ctx ...context.Context) (respBs []byte, statusCode int,
 
 func (r *Request) Do(ctx ...context.Context) (respBs []byte, statusCode int, err error) {
 	var elapsed int
+	var requestStart *time.Time
 
 	defer func() {
 		log.WithFields(log.Fields{
@@ -294,6 +308,17 @@ func (r *Request) Do(ctx ...context.Context) (respBs []byte, statusCode int, err
 		}).Info()
 
 		log.WithFields(log.Fields{"request_body": string(r.bodyBytes), "resp_data": string(respBs)}).Debug()
+
+		if r.prom != nil && r.prom.url != "" {
+			if err != nil {
+				monitor.RequestErrorProm.Inc(r.prom.url, r.method)
+			} else {
+				monitor.RequestProm.Inc(r.prom.url, r.method, strconv.Itoa(statusCode))
+				if requestStart != nil {
+					monitor.RequestProm.HandleTime(*requestStart, r.prom.url, r.method)
+				}
+			}
+		}
 	}()
 
 	err = r.err
@@ -342,7 +367,8 @@ func (r *Request) Do(ctx ...context.Context) (respBs []byte, statusCode int, err
 		req.SetBasicAuth(r.basicAuth.UserName, r.basicAuth.Password)
 	}
 
-	timeStart := time.Now().Nanosecond() / 1e6
+	timeStart := time.Now()
+	requestStart = &timeStart
 
 	resp, err := r.client.Do(req)
 	if err != nil {
@@ -350,7 +376,7 @@ func (r *Request) Do(ctx ...context.Context) (respBs []byte, statusCode int, err
 		return
 	}
 
-	elapsed = time.Now().Nanosecond()/1e6 - timeStart
+	elapsed = time.Now().Nanosecond()/1e6 - timeStart.Nanosecond()/1e6
 
 	statusCode = resp.StatusCode
 

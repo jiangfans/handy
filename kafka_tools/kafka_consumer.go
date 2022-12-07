@@ -31,7 +31,7 @@ func (consumer *kafkaConsumer) ConsumerMsgAndBlock(ctx context.Context, f Consum
 		select {
 		case <-ctx.Done():
 			programQuitNormal = true
-			panic("ctx done, program quit!")
+			panic("👋ctx done, program quit")
 		}
 	}()
 
@@ -41,7 +41,7 @@ func (consumer *kafkaConsumer) ConsumerMsgAndBlock(ctx context.Context, f Consum
 		handler = NewOneByOneConsumerHandler(f)
 	} else {
 		// todo 实现并发处理消息
-		panic("concurrency consume not implement!")
+		panic("🈚️concurrency consume not implement!")
 	}
 
 	for {
