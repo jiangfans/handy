@@ -95,7 +95,7 @@ func (r *Request) Url(reqUrl string, params ...interface{}) *Request {
 			return r
 		}
 
-		for key, _ := range values {
+		for key := range values {
 			r.queryParams.Set(key, values.Get(key))
 		}
 
