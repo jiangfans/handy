@@ -109,7 +109,7 @@ func (sc *sqsClient) SendMsg(ctx context.Context, msg *sqs.SendMessageInput) err
 }
 
 func (sc *sqsClient) ConsumerMsgAndBlock(ctx context.Context, f ConsumeFunc, opts ...ReceiveMsgOption) {
-	log.Infof("😂😂😂start receive msg ...")
+	log.Info("😂😂😂start receive msg ...")
 
 	// export sqs metrics
 	if monitor.SqsEnabled {
@@ -232,7 +232,7 @@ func (sc *sqsClient) consumeMsg(ctx context.Context, msg *types.Message, f Consu
 					sc.changeMessageVisibility(ctx, msg, int32(rMOpts.RetryIntervals[retryTimes]/time.Second))
 					return
 				} else {
-					log.Infof("retry over allow times")
+					log.Info("retry over allow times")
 				}
 			}
 
