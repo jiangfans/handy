@@ -7,8 +7,4 @@ const (
 	requestTotal      = "built_in_request_total"
 	requestTimeCost   = "built_in_request_time_cost"
 	requestErrorTotal = "built_in_request_error_total"
-
-	sqsMessages          = "built_in_sqs_num_of_messages"
-	sqsMessageDelayed    = "built_in_sqs_num_of_messages_delayed"
-	sqsMessageNotVisible = "built_in_sqs_num_of_messages_not_visible"
 )

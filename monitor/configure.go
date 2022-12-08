@@ -7,16 +7,13 @@ import (
 	"gitlab.shoplazza.site/xiabing/goat.git/prom"
 )
 
-var KafkaProm, SqsPromMessages, SqsPromMessagesDelayed, SqsPromMessagesNotVisible, RequestProm, RequestErrorProm *prom.PromVec
+var KafkaProm, RequestProm, RequestErrorProm *prom.PromVec
 
 type Config struct {
 	Namespace      string
 	KafkaEnabled   bool
-	SqsEnabled     bool
 	RequestEnabled bool
 }
-
-var SqsEnabled bool
 
 func Configure(cfg *Config) error {
 	if cfg == nil {
@@ -31,19 +28,6 @@ func Configure(cfg *Config) error {
 		KafkaProm = prom.NewPromVec(cfg.Namespace).
 			Counter(kafkaConsumeTotal, "Kafka consume total", []string{"topic", "result"}).
 			Histogram(kafkaConsumeTimeCost, "Kafka consume time cost", []string{"topic"}, prometheus.ExponentialBuckets(0.02, 2, 11))
-	}
-
-	if cfg.SqsEnabled {
-		SqsEnabled = true
-
-		SqsPromMessages = prom.NewPromVec(cfg.Namespace).
-			Gauge(sqsMessages, "The approximate number of messages in the queue that are delayed and not available for reading immediately.", []string{"queue"})
-
-		SqsPromMessagesDelayed = prom.NewPromVec(cfg.Namespace).
-			Gauge(sqsMessageDelayed, "The approximate number of messages in the queue that are delayed and not available for reading immediately.", []string{"queue"})
-
-		SqsPromMessagesNotVisible = prom.NewPromVec(cfg.Namespace).
-			Gauge(sqsMessageNotVisible, "The approximate number of messages that are in flight.", []string{"queue"})
 	}
 
 	if cfg.RequestEnabled {

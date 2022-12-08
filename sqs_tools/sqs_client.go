@@ -9,7 +9,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/aws/aws-sdk-go-v2/service/sqs/types"
-	"github.com/jiangfans/handy/monitor"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -110,13 +109,6 @@ func (sc *sqsClient) SendMsg(ctx context.Context, msg *sqs.SendMessageInput) err
 
 func (sc *sqsClient) ConsumerMsgAndBlock(ctx context.Context, f ConsumeFunc, opts ...ReceiveMsgOption) {
 	log.Info("😂😂😂start receive msg ...")
-
-	// export sqs metrics
-	if monitor.SqsEnabled {
-		go func() {
-			monitor.MonitorSQSQueue(sc.sqsClient, sc.queueUrl)
-		}()
-	}
 
 	var programQuitNormal bool
 	defer func() {
