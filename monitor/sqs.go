@@ -45,7 +45,7 @@ func MonitorSQSQueue(sqsClient *sqs.Client, queueUrl string) {
 			case string(types.QueueAttributeNameApproximateNumberOfMessagesNotVisible):
 				SqsPromMessagesNotVisible.Set(nMessages, queueName)
 			default:
-				log.Errorf("unknown attribute %v", attrib)
+				log.Errorf("unknown attribute %s", attrib)
 			}
 		}
 

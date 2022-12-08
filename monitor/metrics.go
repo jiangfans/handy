@@ -1,17 +1,14 @@
 package monitor
 
 const (
-	kafkaConsumeTotal    = "kafka_consume_total"
-	kafkaConsumeTimeCost = "kafka_consume_time_cost"
+	kafkaConsumeTotal    = "built_in_kafka_consume_total"
+	kafkaConsumeTimeCost = "built_in_kafka_consume_time_cost"
 
-	sqsConsumeTotal    = "sqs_consume_total"
-	sqsConsumeTimeCost = "sqs_consume_time_cost"
+	requestTotal      = "built_in_request_total"
+	requestTimeCost   = "built_in_request_time_cost"
+	requestErrorTotal = "built_in_request_error_total"
 
-	requestTotal      = "request_total"
-	requestTimeCost   = "request_time_cost"
-	requestErrorTotal = "request_error_total"
-
-	sqsMessages          = "sqs_approximatenumberofmessages"
-	sqsMessageDelayed    = "sqs_approximatenumberofmessagesdelayed"
-	sqsMessageNotVisible = "sqs_approximatenumberofmessagesnotvisible"
+	sqsMessages          = "built_in_sqs_num_of_messages"
+	sqsMessageDelayed    = "built_in_sqs_num_of_messages_delayed"
+	sqsMessageNotVisible = "built_in_sqs_num_of_messages_not_visible"
 )
