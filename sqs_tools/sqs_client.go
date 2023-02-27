@@ -107,7 +107,7 @@ func (sc *sqsClient) SendMsg(ctx context.Context, msg *sqs.SendMessageInput) err
 	return nil
 }
 
-func (sc *sqsClient) ConsumerMsgAndBlock(ctx context.Context, f ConsumeFunc, opts ...ReceiveMsgOption) {
+func (sc *sqsClient) Run(ctx context.Context, f ConsumeFunc, opts ...ReceiveMsgOption) {
 	log.Info("😂😂😂start receive msg ...")
 
 	var programQuitNormal bool
@@ -177,8 +177,9 @@ func (sc *sqsClient) ConsumerMsgAndBlock(ctx context.Context, f ConsumeFunc, opt
 
 			go func(msg types.Message) {
 				defer func() {
+					stackInfo := debug.Stack()
 					if e := recover(); e != nil {
-						log.Error("😭consume sqs msg panic: ", e)
+						log.WithField("stack", stackInfo).Error("😭consume sqs msg panic: ", e)
 					}
 
 					<-concurrencyChan

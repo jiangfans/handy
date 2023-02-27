@@ -11,7 +11,7 @@ type kafkaConsumer struct {
 	ConsumerGroup sarama.ConsumerGroup
 }
 
-func (consumer *kafkaConsumer) ConsumerMsgAndBlock(ctx context.Context, f ConsumeFunc, concurrency bool) {
+func (consumer *kafkaConsumer) Run(ctx context.Context, f ConsumeFunc, concurrency bool) {
 	log.Infof("😂😂😂start receive msg ...")
 
 	var programQuitNormal bool

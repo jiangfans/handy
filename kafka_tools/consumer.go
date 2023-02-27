@@ -23,7 +23,7 @@ type ConsumerConfig struct {
 }
 
 type Consumer interface {
-	ConsumerMsgAndBlock(ctx context.Context, f ConsumeFunc, concurrency bool)
+	Run(ctx context.Context, f ConsumeFunc, concurrency bool)
 }
 
 func NewConsumer(cfg *ConsumerConfig) (Consumer, error) {

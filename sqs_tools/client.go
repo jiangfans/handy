@@ -11,7 +11,7 @@ import (
 type Client interface {
 	SendMsg(ctx context.Context, msg *sqs.SendMessageInput) error
 	SendBytesMsg(ctx context.Context, msg []byte) error
-	ConsumerMsgAndBlock(ctx context.Context, f ConsumeFunc, opts ...ReceiveMsgOption)
+	Run(ctx context.Context, f ConsumeFunc, opts ...ReceiveMsgOption)
 	SqsClient() *sqs.Client
 }
 

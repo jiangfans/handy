@@ -1,6 +1,7 @@
 package kafka_tools
 
 import (
+	"runtime/debug"
 	"time"
 
 	"github.com/Shopify/sarama"
@@ -49,10 +50,11 @@ func (handler *OneByOneConsumerHandler) ConsumeClaim(sess sarama.ConsumerGroupSe
 		}
 
 		if re := recover(); re != nil {
+			stackInfo := string(debug.Stack())
 			if msg != nil {
-				log.WithFields(logFields).Errorf("consume kafka msg paniced: %v", re)
+				log.WithFields(logFields).WithField("stack", stackInfo).Errorf("consume kafka msg paniced: %v", re)
 			} else {
-				log.Errorf("consume kafka msg paniced: %v", re)
+				log.WithField("stack", stackInfo).Errorf("consume kafka msg paniced: %v", re)
 			}
 		}
 

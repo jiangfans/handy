@@ -18,8 +18,6 @@ import (
 	"time"
 
 	"github.com/jiangfans/handy/monitor"
-	"github.com/jiangfans/handy/utils"
-
 	log "github.com/sirupsen/logrus"
 )
 
@@ -32,7 +30,7 @@ type (
 	Request struct {
 		ctx             context.Context
 		client          *http.Client
-		internalRequest *InternalRequest
+		internalApiAuth *InternalApiAuth
 		basicAuth       *BasicAuth
 		method          string
 		url             string
@@ -43,10 +41,8 @@ type (
 		prom            *Prom
 	}
 
-	InternalRequest struct {
+	InternalApiAuth struct {
 		HmacKey string
-		StoreId uint64
-		Locale  string
 	}
 
 	BasicAuth struct {
@@ -99,6 +95,7 @@ func (r *Request) Url(reqUrl string, params ...interface{}) *Request {
 			r.queryParams.Set(key, values.Get(key))
 		}
 
+		u.RawQuery = ""
 		r.url = u.String()
 	} else {
 		r.url = reqUrl
@@ -200,29 +197,17 @@ func (r *Request) ContentType(contentType string) *Request {
 	return r
 }
 
-func (r *Request) InternalRequest(hmacKey string, storeId uint64, locale string) *Request {
-	r.internalRequest = &InternalRequest{
+func (r *Request) InternalApiAuth(hmacKey string) *Request {
+	r.internalApiAuth = &InternalApiAuth{
 		HmacKey: hmacKey,
-		StoreId: storeId,
-		Locale:  locale,
 	}
 	return r
 }
 
-func (r *Request) addInternalRequestHeaders() *Request {
-	if r.internalRequest != nil {
+func (r *Request) addReqInternalApiDigest() *Request {
+	if r.internalApiAuth != nil {
 		timestamp := time.Now().Unix()
 		r.AddHeader("X-TimeStamp", strconv.FormatInt(timestamp, 10))
-
-		if r.internalRequest.StoreId != 0 {
-			r.AddHeader("store-id", strconv.FormatUint(r.internalRequest.StoreId, 10))
-		}
-
-		if r.internalRequest.Locale != "" {
-			r.AddHeader("X-LOCALE", r.internalRequest.Locale)
-		} else {
-			r.AddHeader("X-LOCALE", utils.LanguageZhCN)
-		}
 
 		var (
 			rawQuery string
@@ -236,7 +221,7 @@ func (r *Request) addInternalRequestHeaders() *Request {
 			body = string(r.bodyBytes)
 		}
 
-		h := hmac.New(sha256.New, []byte(r.internalRequest.HmacKey))
+		h := hmac.New(sha256.New, []byte(r.internalApiAuth.HmacKey))
 		_, err := h.Write([]byte(fmt.Sprintf("timestamp:%d\n%s\n%s", timestamp, rawQuery, body)))
 		if err != nil {
 			log.Error("hmac count failed: " + err.Error())
@@ -248,6 +233,16 @@ func (r *Request) addInternalRequestHeaders() *Request {
 		r.AddHeader("X-TOKEN", token)
 	}
 
+	return r
+}
+
+func (r *Request) AddStoreIDHeader(storeID uint64) *Request {
+	r.AddHeader("store-id", strconv.FormatUint(storeID, 10))
+	return r
+}
+
+func (r *Request) AddLocaleHeader(locale string) *Request {
+	r.AddHeader("X-LOCALE", locale)
 	return r
 }
 
@@ -359,8 +354,8 @@ func (r *Request) Do(ctx ...context.Context) (respBs []byte, statusCode int, err
 		}
 	}
 
-	if r.internalRequest != nil {
-		r.addInternalRequestHeaders()
+	if r.internalApiAuth != nil {
+		r.addReqInternalApiDigest()
 	}
 
 	if r.basicAuth != nil {
