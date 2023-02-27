@@ -306,11 +306,11 @@ func (r *Request) Do(ctx ...context.Context) (respBs []byte, statusCode int, err
 
 		if r.prom != nil && r.prom.url != "" {
 			if err != nil {
-				monitor.RequestErrorProm.Inc(r.prom.url, r.method)
+				monitor.ReportRequestErrorTotal(r.prom.url, r.method)
 			} else {
-				monitor.RequestProm.Inc(r.prom.url, r.method, strconv.Itoa(statusCode))
+				monitor.ReportRequestTotal(r.prom.url, r.method, statusCode)
 				if requestStart != nil {
-					monitor.RequestProm.HandleTime(*requestStart, r.prom.url, r.method)
+					monitor.ReportRequestTimeCost(*requestStart, r.prom.url, r.method)
 				}
 			}
 		}

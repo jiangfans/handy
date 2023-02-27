@@ -78,13 +78,13 @@ func (handler *OneByOneConsumerHandler) ConsumeClaim(sess sarama.ConsumerGroupSe
 		startAt := time.Now()
 		err = handler.consumeFunc(msg)
 		if err != nil {
-			monitor.KafkaProm.Inc(msg.Topic, "failed")
+			monitor.ReportKafkaConsumeTotal(msg.Topic, "failed")
 			// 有错误直接返回，避免丢消息，这里有可能堵塞消费，先👀下
 			return nil
 		}
 
-		monitor.KafkaProm.HandleTime(startAt, msg.Topic)
-		monitor.KafkaProm.Inc(msg.Topic, "success")
+		monitor.ReportKafkaConsumeTimeCost(startAt, msg.Topic)
+		monitor.ReportKafkaConsumeTotal(msg.Topic, "success")
 		sess.MarkMessage(msg, "")
 	}
 	return nil
